@@ -510,12 +510,29 @@
     "e4813d",
     "f2923b",
   ];
-  let flag = true;
-  let answer = [];
-  let ans;
-  let localAnswer = JSON.parse(localStorage.getItem("answer"));
-  let localAns = JSON.parse(localStorage.getItem("ans"));
-  let localQuestion = JSON.parse(localStorage.getItem("question"));
+  localStorage.setItem("colors", JSON.stringify(colors));
+  let flag = JSON.parse(localStorage.getItem("flag")) || false;
+
+  if (!flag) createQuestion();
+  else showStorageData();
+
+  function showStorageData() {
+    let localQuestion = JSON.parse(localStorage.getItem("question"));
+    let localAnswer = JSON.parse(localStorage.getItem("answer"));
+    let localColor = JSON.parse(localStorage.getItem("colors"));
+    document.getElementsByClassName("question")[0].innerHTML = localQuestion;
+    document.querySelectorAll(".ans-color").forEach((element, index) => {
+      element.classList.add(`color-${localColor[index]}`);
+      element.innerHTML = localAnswer[index];
+    });
+  }
+
+  //   let answer = [];
+  //   let ans;
+  //   let localAnswer = JSON.parse(localStorage.getItem("answer"));
+  //   let localAns = JSON.parse(localStorage.getItem("ans"));
+  //   let localQuestion = JSON.parse(localStorage.getItem("question"));
+  //   let localColor = JSON.parse(localStorage.getItem("colors")) || colors;
 
   function shuffle(array) {
     let currentIndex = array.length,
@@ -532,11 +549,13 @@
   }
 
   function createQuestion() {
+    let answer = [];
+    let localColor = JSON.parse(localStorage.getItem("colors"));
     let a = Math.floor(Math.random() * (20 - 10 + 1)) + 10;
     let b = Math.floor(Math.random() * (30 + 1)) - 10;
     let c = Math.floor(Math.random() * (30 + 1)) - 10;
     let d = Math.floor(Math.random() * (30 + 1)) - 10;
-    ans = a + b + c + d;
+    let ans = a + b + c + d;
     answer.push(ans);
     let min = ans - 10;
     let max = ans + 10;
@@ -548,32 +567,38 @@
     let question = `${a}${b > 0 ? " + " : " - "}${Math.abs(b)}${
       c > 0 ? " + " : " - "
     }${Math.abs(c)}${d > 0 ? " + " : " - "}${Math.abs(d)}`;
+    localStorage.setItem("flag", JSON.stringify(true));
     localStorage.setItem("question", JSON.stringify(question));
     localStorage.setItem("answer", JSON.stringify(answer));
     localStorage.setItem("ans", JSON.stringify(ans));
     document.getElementsByClassName("question")[0].innerHTML = question;
     document.querySelectorAll(".ans-color").forEach((element, index) => {
-      element.classList.add(`color-${colors[index]}`);
+      element.classList.add(`color-${localColor[index]}`);
       element.innerHTML = answer[index];
     });
   }
 
-  if (flag) createQuestion();
-  else {
-    document.getElementsByClassName("question")[0].innerHTML = localQuestion;
-    document.querySelectorAll(".ans-color").forEach((element, index) => {
-      element.classList.add(`color-${colors[index]}`);
-      element.innerHTML = localAnswer[index];
-    });
-  }
-
   function findAnswer(event) {
+    event.preventDefault();
+    let localColor = JSON.parse(localStorage.getItem("colors"));
     document.querySelector(".none").style.visibility = "hidden";
-    let value = ans ? ans : localAns;
+    let value = JSON.parse(localStorage.getItem("ans"));
     if (event.target.innerHTML == value) {
       let name = event.target.classList.value.split(" ")[1];
+      console.log(name);
       document.querySelector(`.${name}`).classList.remove("color-d3d3d3");
+      console.log(document.querySelector(`.${name}`));
       document.querySelector(`.${name}`).draggable = true;
+      localStorage.setItem(
+        "colors",
+        JSON.stringify([
+          ...localColor.filter((element) => element != name.split("-")[1]),
+        ])
+      );
+      document.querySelectorAll(`.ans-color`).forEach((element) => {
+        let classes = element.classList.value.split(" ");
+        element.classList.remove(classes[1]);
+      });
       createQuestion();
     } else {
       document.querySelector(".none").style.visibility = "visible";
